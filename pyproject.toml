@@ -3,7 +3,7 @@ name = "sentraauthx"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "styse",email = "shmadad0@gmail.com"}
+    {name = "styse",email = "styse011@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
