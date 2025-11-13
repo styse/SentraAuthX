@@ -1,1 +1,1 @@
-# SentraAuthX
+# sentra-authx
