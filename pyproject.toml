@@ -11,7 +11,8 @@ dependencies = [
     "django (>=5.2.4,<6.0.0)",
     "djangorestframework (>=3.16.0,<4.0.0)",
     "drf-spectacular (>=0.28.0,<0.29.0)",
-    "python-decouple (>=3.8,<4.0)"
+    "python-decouple (>=3.8,<4.0)",
+    "django-rest-knox (>=5.0.2,<6.0.0)"
 ]
 
 [tool.poetry]
