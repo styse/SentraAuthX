@@ -5,14 +5,11 @@ from django.utils import timezone
 
 class UserManager(BaseUserManager):
     def create_user(self, phone=None, email=None, password=None, **extra_fields):
-        if not phone and not email:
-            raise ValueError('Users must have either a phone number or an email')
+        if not email:
+            raise ValueError("User must have an email address")
 
-        if email:
-            email = self.normalize_email(email)
-            extra_fields['email'] = email
-
-        user = self.model(phone=phone, email=email, **extra_fields)
+        email = self.normalize_email(email)
+        user = self.model(email=email, phone=phone, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -31,7 +28,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
 
-    USERNAME_FIELD = 'phone'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
