@@ -47,3 +47,11 @@ class LoginView(APIView):
             "token": token
         }, status=status.HTTP_200_OK)
 
+
+class LogoutView(KnoxLogoutView):
+    permission_classes = ()
+    pass
+
+class LogoutAllView(KnoxLogoutAllView):
+    permission_classes = ()
+    pass
