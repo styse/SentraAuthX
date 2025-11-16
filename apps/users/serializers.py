@@ -10,10 +10,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = User.objects.create(**validated_data)
+        user = User.objects.create_user()
         user.set_password(password)
         user.save()
         return user
+
 
 class UserLoginSerializer(serializers.Serializer):
     phone = serializers.CharField(required=False)
@@ -26,18 +27,19 @@ class UserLoginSerializer(serializers.Serializer):
         password = attrs.get('password')
         
         if not phone and not email:
-            raise serializers.ValidationError("Phone or email is required to login.")
-        
-        user = None
-        if phone:
-            user = User.objects.filter(phone=phone).first()
-        elif email:
+            raise serializers.ValidationError("Email or phone is required.")
+
+        if email:
             user = User.objects.filter(email=email).first()
-        
+        else:
+            user = User.objects.filter(phone=phone).first()
+
         if not user:
             raise serializers.ValidationError("User not found.")
+
         if not user.check_password(password):
             raise serializers.ValidationError("Incorrect password.")
+
         if not user.is_active:
             raise serializers.ValidationError("User is inactive.")
         
