@@ -61,6 +61,11 @@ REST_FRAMEWORK = {
         "knox.auth.TokenAuthentication",
     ]
 }
+AUTHENTICATION_BACKENDS = [
+    'apps.users.backends.EmailOrPhoneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
