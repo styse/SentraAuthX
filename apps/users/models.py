@@ -3,40 +3,49 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 import random
+import uuid
+
 
 class UserManager(BaseUserManager):
-    def create_user(self, phone=None, email=None, password=None, **extra_fields):
-        if not email:
-            raise ValueError("User must have an email address")
+    def create_user(self, email=None, phone_number=None, password=None, **extra_fields):
+        if not email and not phone_number:
+            raise ValueError("A user must have either an email or phone number.")
 
-        email = self.normalize_email(email)
-        user = self.model(email=email, phone=phone, **extra_fields)
+        if email:
+            email = self.normalize_email(email)
+
+        user = self.model(
+            email=email,
+            phone_number=phone_number,
+            **extra_fields
+        )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, phone=None, email=None, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-        return self.create_user(phone=phone, email=email, password=password, **extra_fields)
-
-
+        return self.create_user(email=email, password=password, **extra_fields)
+    
 
 class User(AbstractBaseUser, PermissionsMixin):
-    phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True, null=True, blank=True)
+    phone_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(default=timezone.now)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()
 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
     def __str__(self):
-        return self.phone or self.email or f'User {self.pk}'
+        return self.email or self.phone or str(self.id)
 
 
 
