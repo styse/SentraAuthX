@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, OTP
+from django.utils import timezone
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
@@ -48,55 +49,29 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class OTPRequestSerializer(serializers.Serializer):
-    phone = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
+    phone = serializers.CharField(required=True)
 
-    def validate(self, attrs):
-        phone = attrs.get('phone')
-        email = attrs.get('email')
-
-        if not phone and not email:
-            raise serializers.ValidationError("Phone or email is required.")
-
-        user = None
-        if phone:
-            user = User.objects.filter(phone=phone).first()
-        elif email:
-            user = User.objects.filter(email=email).first()
-
-        if not user:
-            raise serializers.ValidationError("User not found.")
-
-        attrs['user'] = user
-        return attrs
+    def validate_phone(self, value):
+        if not User.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError("User with this phone number does not exist.")
+        return value
 
 
 class OTPVerifySerializer(serializers.Serializer):
-    phone = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
-    code = serializers.CharField(max_length=6)
+    phone = serializers.CharField(required=True)
+    code = serializers.CharField(max_length=6, required=True)
 
     def validate(self, attrs):
         phone = attrs.get('phone')
-        email = attrs.get('email')
         code = attrs.get('code')
 
-        if not phone and not email:
-            raise serializers.ValidationError("Phone or email is required.")
+        try:
+            otp = OTP.objects.get(phone=phone, code=code, is_used=False)
+        except OTP.DoesNotExist:
+            raise serializers.ValidationError("Invalid OTP.")
 
-        user = None
-        if phone:
-            user = User.objects.filter(phone=phone).first()
-        elif email:
-            user = User.objects.filter(email=email).first()
+        if otp.expires_at < timezone.now():
+            raise serializers.ValidationError("OTP expired.")
 
-        if not user:
-            raise serializers.ValidationError("User not found.")
-
-        otp = OTP.objects.filter(user=user, code=code, is_used=False).first()
-        if not otp or otp.is_expired():
-            raise serializers.ValidationError("Invalid or expired OTP.")
-
-        attrs['user'] = user
-        attrs['otp'] = otp
+        attrs['otp_instance'] = otp
         return attrs
