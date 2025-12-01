@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import User, OTP
-from django.utils import timezone
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
