@@ -29,7 +29,7 @@ class RegisterView(APIView):
             "user": {
                 "id": user.id,
                 "email": user.email,
-                "phone": user.phone,
+                "phone_number": user.phone_number,
             },
             "token": token
         }, status=status.HTTP_201_CREATED)
@@ -49,7 +49,7 @@ class LoginView(APIView):
             "user": {
                 "id": user.id,
                 "email": user.email,
-                "phone": user.phone,
+                "phone_number": user.phone_number,
             },
             "token": token
         }, status=status.HTTP_200_OK)
@@ -72,8 +72,8 @@ class RequestOTPView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        phone = serializer.validated_data['phone']
-        user = User.objects.get(phone_number=phone)
+        phone_number = serializer.validated_data['phone_number']
+        user = User.objects.get(phone_number=phone_number)
 
         # Generate OTP
         code = str(random.randint(100000, 999999))
@@ -84,7 +84,7 @@ class RequestOTPView(generics.GenericAPIView):
         )
 
         # TODO: Send OTP via SMS provider
-        print(f"OTP for {phone}: {code}")
+        print(f"OTP for {phone_number}: {code}")
 
         return Response({"detail": "OTP sent successfully"}, status=status.HTTP_200_OK)
 
