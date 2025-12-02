@@ -2,7 +2,7 @@ import random
 from datetime import timedelta
 from django.utils import timezone
 from django.core.cache import cache
-from users.models import OTPCode
+from users.models import OTP
 
 
 class OTPService:
@@ -30,7 +30,7 @@ class OTPService:
 
         code = OTPService.generate_code()
 
-        OTPCode.objects.create(
+        OTP.objects.create(
             phone_number=phone_number,
             code=code,
             expires_at=timezone.now() + timedelta(minutes=2)
