@@ -1,5 +1,5 @@
 from .models import Session
-
+from django.utils import timezone
 
 def create_user_session(user, token_key, request):
     """
@@ -30,3 +30,23 @@ def get_client_ip(request):
     
     # normal
     return request.META.get("REMOTE_ADDR")
+
+
+
+def deactivate_session_by_token_key(token_key):
+    try:
+        session = Session.objects.get(token_key=token_key, is_active=True)
+        session.is_active = False
+        session.last_active_at = timezone.now()
+        session.save()
+        
+    except Session.DoesNotExist():
+        pass
+    
+    
+def deactivate_all_sessions_for_user(user):
+    Session.objects.filter(user=user, is_active=True).update(
+        is_active=False,
+        last_active_at=timezone.now()
+    )
+    
