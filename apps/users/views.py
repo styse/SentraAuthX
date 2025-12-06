@@ -56,13 +56,29 @@ class LoginView(APIView):
 
 
 class LogoutView(KnoxLogoutView):
-    permission_classes = ()
-    pass
+    permission_classes = [TokenAuthentication]
+    
+    def post(self, request, format=None):
+        token_key = request.auth
+        if token_key:
+            deactivate_session_by_token_key(token_key)
+
+        response = super().post(request, format=format)
+        
+        return Response({"detail": "Logged out successfully"}, status=200)
+
 
 class LogoutAllView(KnoxLogoutAllView):
-    permission_classes = ()
-    pass
-
+    
+    def post(self, request, format=None):
+        user = request.user
+        
+        deactivate_all_sessions_for_user(user)
+        
+        super().post(request, format=format)
+        
+        return Response({"detail": "Logged out from all devices"}, status=200)
+    
 
 class RequestOTPView(generics.GenericAPIView):
     serializer_class = OTPRequestSerializer
