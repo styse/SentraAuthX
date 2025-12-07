@@ -10,13 +10,13 @@ class UserSessionListView(generics.ListAPIView):
     
     def get_queryset(self):
         user = self.request.user
-        
-        active_only = self.request.query_params.get['active_only']
+
+        active_only = self.request.query_params.get('active')
         qs = Session.objects.filter(user=user)
         
         if active_only == 'true':
             qs = qs.filter(is_active=True)
-            
+
         return qs.order_by("-last_active_at")
 
 
