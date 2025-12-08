@@ -6,12 +6,18 @@ from rest_framework import generics
 from knox.models import AuthToken
 from knox.views import LogoutView as KnoxLogoutView
 from knox.views import LogoutAllView as KnoxLogoutAllView
+from knox.auth import TokenAuthentication
 from django.utils import timezone
 from .models import OTP, User
 from .serializers import (
     UserRegisterSerializer, UserLoginSerializer,
     OTPRequestSerializer, OTPVerifySerializer
-    )
+)
+from apps.user_sessions.services import (
+    deactivate_session_by_token_key,
+    deactivate_all_sessions_for_user,
+    create_user_session
+)
 import random
 
 
@@ -40,19 +46,18 @@ class LoginView(APIView):
 
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
 
-        token = AuthToken.objects.create(user)[1]
+            token, _ = AuthToken.objects.get_or_create(user=user)
+            token_key=token.key[:32],
 
-        return Response({
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "phone_number": user.phone_number,
-            },
-            "token": token
-        }, status=status.HTTP_200_OK)
+            create_user_session(user, token_key, request)
+            
+            return Response({"token": token.key}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class LogoutView(KnoxLogoutView):
@@ -117,7 +122,8 @@ class VerifyOTPView(generics.GenericAPIView):
         otp_instance.is_used = True
         otp_instance.save()
 
-        token = AuthToken.objects.create(otp_instance.user)[1]
+        token_key = AuthToken.objects.create(otp_instance.user)[1]
+        create_user_session(otp_instance.user, token_key, request)
 
         return Response({
             "user": {
@@ -125,5 +131,5 @@ class VerifyOTPView(generics.GenericAPIView):
                 "phone_number": otp_instance.user.phone_number,
                 "email": otp_instance.user.email,
             },
-            "token": token
+            "token": token_key
         }, status=status.HTTP_200_OK)
