@@ -32,7 +32,6 @@ def get_client_ip(request):
     return request.META.get("REMOTE_ADDR")
 
 
-
 def deactivate_session_by_token_key(token_key):
     try:
         session = Session.objects.get(token_key=token_key, is_active=True)
