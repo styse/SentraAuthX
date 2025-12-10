@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
 from knox.models import AuthToken
 from knox.views import LogoutView as KnoxLogoutView
@@ -49,28 +49,25 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data['user']
 
-            token, _ = AuthToken.objects.get_or_create(user=user)
-            token_key=token.key[:32],
+            auth_token, token = AuthToken.objects.create(user)
 
-            create_user_session(user, token_key, request)
+            create_user_session(user, token, request)
             
-            return Response({"token": token.key}, status=status.HTTP_200_OK)
+            return Response({"token": token}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class LogoutView(KnoxLogoutView):
-    permission_classes = [TokenAuthentication]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     
     def post(self, request, format=None):
         token_key = request.auth
         if token_key:
             deactivate_session_by_token_key(token_key)
-
-        response = super().post(request, format=format)
         
-        return Response({"detail": "Logged out successfully"}, status=200)
+        return Response({"detail": "Logged out successfully",}, status=status.HTTP_200_OK)
 
 
 class LogoutAllView(KnoxLogoutAllView):
