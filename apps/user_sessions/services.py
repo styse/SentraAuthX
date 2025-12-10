@@ -9,7 +9,7 @@ def create_user_session(user, token_key, request):
     ip = get_client_ip(request)
     user_agent = request.META.get("HTTP_USER_AGENT","")
     
-    return Session.object.create(
+    Session.objects.create(
         user = user,
         token_key = token_key,
         ip_address = ip,
@@ -38,8 +38,7 @@ def deactivate_session_by_token_key(token_key):
         session.is_active = False
         session.last_active_at = timezone.now()
         session.save()
-        
-    except Session.DoesNotExist():
+    except Session.DoesNotExist:
         pass
     
     
