@@ -42,6 +42,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "knox",
+    "drf-spectacular",
 ]
 
 LOCAL_APPS = [
@@ -55,13 +56,15 @@ INSTALLED_APPS = [
     *LOCAL_APPS,
 ]
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "SentraAuthX API",
+    "DESCRIPTION": "Advanced user authentication & session management API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
 
 # Authentication
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "knox.auth.TokenAuthentication",
-    ]
-}
 AUTHENTICATION_BACKENDS = [
     'apps.users.backends.EmailOrPhoneBackend',
     'django.contrib.auth.backends.ModelBackend',
